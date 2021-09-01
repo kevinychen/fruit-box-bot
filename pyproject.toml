@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "fruit-box-bot"
+version = "0.1.0"
+description = ""
+authors = ["Kevin Chen"]
+
+[tool.poetry.dependencies]
+python = "^3.7"
+PyAutoGUI = "^0.9.53"
+Pillow = "^8.3.1"
+opencv-python = "^4.5.3"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
