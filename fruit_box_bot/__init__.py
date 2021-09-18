@@ -22,9 +22,16 @@ def box(x, y, width, height):
     drag(width * SIZE / SCALE, height * SIZE / SCALE, duration, easeOutQuad, button='left')
 
 
-image = screenshot()
-grid = [[0 for _ in range(NUM_COLS)] for _ in range(NUM_ROWS)]
-for digit in range(1, 10):
-    for (local_left, local_top, _, _) in locateAll(f'apple{digit}.png', image, confidence=0.99):
-        grid[(local_top - top - EDGE) // SIZE][(local_left - left - EDGE) // SIZE] = digit
-solver.solve2(grid, box)
+while True:
+    leftClick(x=(left - 6) / SCALE, y=(top + 736) / SCALE)
+    leftClick(x=(left + 300) / SCALE, y=(top + 350) / SCALE)
+    image = screenshot()
+    grid = [[0 for _ in range(NUM_COLS)] for _ in range(NUM_ROWS)]
+    for digit in range(1, 10):
+        for (local_left, local_top, _, _) in locateAll(f'apple{digit}.png', image, confidence=0.99):
+            grid[(local_top - top - EDGE) // SIZE][(local_left - left - EDGE) // SIZE] = digit
+    score = solver.solve1(grid)
+    print(score)
+    if score >= 140:
+        break
+solver.solve1(grid, box)
