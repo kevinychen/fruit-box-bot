@@ -1,8 +1,8 @@
 from collections import namedtuple
 from random import randint
 
-NUM_ROWS = 4
-NUM_COLS = 4
+NUM_ROWS = 6
+NUM_COLS = 6
 GOAL = 10
 Clear = namedtuple('Clear', 'width height points')
 
@@ -94,53 +94,48 @@ def find_clears_containing(grid, cx, cy):
 
 
 def solve2(grid, box=None):
-    best_clears = []
+    best_score = 0
 
-    def recurse(px, py, score, clears, can_use_intersecting=False):
-        def process(new_clears):
-            for clear in new_clears:
-                clears.append(clear)
-                for (x, y, val) in clear.points:
-                    grid[y][x] = 0
-                recurse(px + 1, py, score + len(clear.points), clears, True)
-                clears.pop()
-                for (x, y, val) in clear.points:
-                    grid[y][x] = val
+    def recurse(px, py, score, clears, min_back_index=1000):
+        nonlocal best_score
+
+        def process(clear, new_min_back_index):
+            clears.append(clear)
+            for (x, y, val) in clear.points:
+                grid[y][x] = 0
+            recurse(px, py, score + len(clear.points), clears, new_min_back_index)
+            clears.pop()
+            for (x, y, val) in clear.points:
+                grid[y][x] = val
 
         if py == NUM_ROWS:
-            print("#", score, clears)
+            # print(score, clears)
+            if score > best_score:
+                best_score = score
         elif px == NUM_COLS:
             recurse(0, py + 1, score, clears)
         else:
-            if can_use_intersecting:
-                new_intersecting_clears = set()
-                for (cx, cy, _) in clears[-1].points:
-                    new_intersecting_clears.update(find_clears_containing(grid, cx, cy))
-                process(new_intersecting_clears)
-            process(find_clears(grid, px, py))
+            used_clears = set()
+            for back_index in range(min_back_index, len(clears)):
+                for (cx, cy, _) in clears[back_index].points:
+                    for back_clear in find_clears_containing(grid, cx, cy):
+                        if back_clear not in used_clears:
+                            process(back_clear, back_index)
+                            used_clears.add(back_clear)
+            for new_clear in find_clears(grid, px, py):
+                process(new_clear, len(clears))
             recurse(px + 1, py, score, clears)
 
     recurse(0, 0, 0, [])
+    return best_score
 
 
-grid = [
-    [1, 0, 0, 9],
-    [9, 8, 0, 2],
-    [0, 0, 3, 5],
-    [1, 2, 3, 1],
-]
-solve2(grid)
+def test():
+    grid = [[randint(1, 9) for _ in range(NUM_COLS)] for _ in range(NUM_ROWS)]
+    for row in grid:
+        print(row)
+    print('solve1:', solve1(grid))
+    print('solve2:', solve2(grid))
 
 
-import math
-def test(n: int):
-    print('testing', n, 'cases...')
-    scores1 = [solve1([[randint(1, 9) for x in range(NUM_COLS)] for y in range(NUM_ROWS)]) for _ in range(n)]
-    # scores2 = [solve2([[randint(1, 9) for x in range(NUM_COLS)] for y in range(NUM_ROWS)]) for _ in range(n)]
-    mean = sum(scores1) / len(scores1)
-    print('score: ', sum(scores1) / len(scores1))
-    print('stddev: ', math.sqrt(sum([(score - mean) ** 2 for score in scores1]) / n))
-    # print('score: ', sum(scores2) / len(scores2))
-
-
-# test(400)
+test()
