@@ -32,6 +32,6 @@ while True:
             grid[(local_top - top - EDGE) // SIZE][(local_left - left - EDGE) // SIZE] = digit
     score = solver.solve1(grid)
     print(score)
-    if score >= 140:
+    if score >= 100:
         break
 solver.solve1(grid, box)
