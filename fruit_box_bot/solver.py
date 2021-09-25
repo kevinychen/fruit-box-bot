@@ -4,7 +4,7 @@ from random import randint
 NUM_ROWS = 4
 NUM_COLS = 4
 GOAL = 10
-Clear = namedtuple('Clear', 'x y width height num')
+Clear = namedtuple('Clear', 'width height points')
 
 
 def solve1(grid, box=None):
@@ -44,7 +44,7 @@ def find_clears(grid, px, py):
             leftmost_col_used = False
             rightmost_col_used = False
             while sy + height < NUM_ROWS:
-                rect_sum += row_sum if height == 0 else sum([grid[sy + height][x] for x in range(sx, sx + width)])
+                rect_sum += sum([grid[sy + height][x] for x in range(sx, sx + width)])
                 leftmost_col_used |= grid[sy + height][sx]
                 rightmost_col_used |= grid[sy + height][sx + width - 1]
                 height += 1
@@ -52,43 +52,82 @@ def find_clears(grid, px, py):
                     break
                 if rect_sum == GOAL:
                     if leftmost_col_used and rightmost_col_used:
-                        yield [(x, y, grid[y][x])
-                               for x in range(sx, sx + width) for y in range(sy, sy + height) if grid[y][x]]
+                        yield Clear(width, height, tuple((x, y, grid[y][x])
+                                                    for x in range(sx, sx + width)
+                                                    for y in range(sy, sy + height)
+                                                    if grid[y][x]))
                     break
         sx -= 1
+
+
+def find_clears_containing(grid, cx, cy):
+    py = cy
+    col_sum = 0
+    while py >= 0:
+        col_sum += grid[py][cx]
+        if col_sum >= GOAL:
+            break
+        px = cx
+        rect_sum = 0
+        while px >= 0:
+            rect_sum += sum([grid[y][px] for y in range(py, cy + 1)])
+            if rect_sum > GOAL:
+                break
+            if grid[py][px]:
+                for clear in find_clears(grid, px, py):
+                    if clear.width > cx - px and clear.height > cy - py:
+                        yield clear
+            px -= 1
+        px = cx
+        rect_sum = 0
+        while px < NUM_COLS:
+            rect_sum += sum([grid[y][px] for y in range(py, cy + 1)])
+            if rect_sum > GOAL:
+                break
+            if grid[py][px]:
+                for clear in find_clears(grid, px, py):
+                    if clear.width > px - cx and clear.height > cy - py:
+                        yield clear
+                break
+            px += 1
+        py -= 1
 
 
 def solve2(grid, box=None):
     best_clears = []
 
-    def recurse(px, py, score, clears):
+    def recurse(px, py, score, clears, can_use_intersecting=False):
+        def process(new_clears):
+            for clear in new_clears:
+                clears.append(clear)
+                for (x, y, val) in clear.points:
+                    grid[y][x] = 0
+                recurse(px + 1, py, score + len(clear.points), clears, True)
+                clears.pop()
+                for (x, y, val) in clear.points:
+                    grid[y][x] = val
+
         if py == NUM_ROWS:
             print("#", score, clears)
         elif px == NUM_COLS:
             recurse(0, py + 1, score, clears)
         else:
-            if clears:
-                for (x, y, val) in clears[-1]:
-                    # TODO
-                    pass
+            if can_use_intersecting:
+                new_intersecting_clears = set()
+                for (cx, cy, _) in clears[-1].points:
+                    new_intersecting_clears.update(find_clears_containing(grid, cx, cy))
+                process(new_intersecting_clears)
+            process(find_clears(grid, px, py))
             recurse(px + 1, py, score, clears)
-            for clear in find_clears(grid, px, py):
-                clears.append(clear)
-                for (x, y, val) in clear:
-                    grid[y][x] = 0
-                recurse(px + 1, py, score + len(clear), clears)
-                clears.pop()
-                for (x, y, val) in clear:
-                    grid[y][x] = val
 
     recurse(0, 0, 0, [])
 
 
 grid = [
-    [1, 0, 0, 9, 0],
-    [9, 8, 0, 2, 0],
-    [0, 0, 5, 3, 0],
-    [1, 2, 3, 1, 0],
+    [1, 0, 0, 9],
+    [9, 8, 0, 2],
+    [0, 0, 3, 5],
+    [1, 2, 3, 1],
 ]
 solve2(grid)
 
