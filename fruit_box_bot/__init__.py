@@ -30,8 +30,10 @@ while True:
     for digit in range(1, 10):
         for (local_left, local_top, _, _) in locateAll(f'apple{digit}.png', image, confidence=0.99):
             grid[(local_top - top - EDGE) // SIZE][(local_left - left - EDGE) // SIZE] = digit
-    score = solver.solve1(grid)
-    print(score)
-    if score >= 100:
+    score = solver.solve2(grid)
+    if score >= 130:
+        print(score)
+        for row in grid:
+            print(row)
         break
-solver.solve1(grid, box)
+solver.solve2(grid, box)

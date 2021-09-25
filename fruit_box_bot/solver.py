@@ -1,10 +1,11 @@
 from collections import namedtuple
-from random import randint
+import random
 
-NUM_ROWS = 6
-NUM_COLS = 6
+NUM_ROWS = 10
+NUM_COLS = 17
 GOAL = 10
-Clear = namedtuple('Clear', 'width height points')
+D = 3
+Clear = namedtuple('Clear', 'x y width height points')
 
 
 def solve1(grid, box=None):
@@ -52,10 +53,10 @@ def find_clears(grid, px, py):
                     break
                 if rect_sum == GOAL:
                     if leftmost_col_used and rightmost_col_used:
-                        yield Clear(width, height, tuple((x, y, grid[y][x])
-                                                    for x in range(sx, sx + width)
-                                                    for y in range(sy, sy + height)
-                                                    if grid[y][x]))
+                        yield Clear(sx, sy, width, height, tuple((x, y, grid[y][x])
+                                                                 for y in range(sy, sy + height)
+                                                                 for x in range(sx, sx + width)
+                                                                 if grid[y][x]))
                     break
         sx -= 1
 
@@ -93,28 +94,54 @@ def find_clears_containing(grid, cx, cy):
         py -= 1
 
 
-def solve2(grid, box=None):
-    best_score = 0
+def compute_grid_hash(grid):
+    grid_hash = 0
+    for x in range(NUM_COLS):
+        for y in range(NUM_ROWS):
+            grid_hash = grid_hash * 11 + grid[y][x]
+        grid_hash %= 2 ** 64
+    return grid_hash
 
-    def recurse(px, py, score, clears, min_back_index=1000):
-        nonlocal best_score
+
+def solve2(grid, box=None):
+    best_cdf = []
+    best_clears = []
+    best_score = 0
+    num_states = 0
+    visited_hashes = set()
+
+    def recurse(px, py, score, clears, cdf, min_back_index=1000):
+        nonlocal best_cdf, best_clears, best_score
 
         def process(clear, new_min_back_index):
+            nonlocal num_states
+            num_states += 1
+            if num_states >= 10000:
+                return
             clears.append(clear)
-            for (x, y, val) in clear.points:
+            cdf_val = clear.points[0][1] * NUM_COLS + clear.points[0][0]
+            for x, y, val in clear.points:
                 grid[y][x] = 0
-            recurse(px, py, score + len(clear.points), clears, new_min_back_index)
+                cdf.append(max(cdf[-1], cdf_val))
+            grid_hash = compute_grid_hash(grid)
+            if grid_hash not in visited_hashes:
+                visited_hashes.add(grid_hash)
+                recurse(px, py, score + len(clear.points), clears, cdf, new_min_back_index)
             clears.pop()
             for (x, y, val) in clear.points:
                 grid[y][x] = val
+                cdf.pop()
 
         if py == NUM_ROWS:
-            # print(score, clears)
             if score > best_score:
+                best_cdf = cdf.copy()
+                best_clears = clears.copy()
                 best_score = score
         elif px == NUM_COLS:
-            recurse(0, py + 1, score, clears)
+            recurse(0, py + 1, score, clears, cdf)
         else:
+            if len(best_cdf) > len(cdf) + D and best_cdf[len(cdf) + D] <= cdf[-1]:
+                return
             used_clears = set()
             for back_index in range(min_back_index, len(clears)):
                 for (cx, cy, _) in clears[back_index].points:
@@ -124,18 +151,21 @@ def solve2(grid, box=None):
                             used_clears.add(back_clear)
             for new_clear in find_clears(grid, px, py):
                 process(new_clear, len(clears))
-            recurse(px + 1, py, score, clears)
+            recurse(px + 1, py, score, clears, cdf)
 
-    recurse(0, 0, 0, [])
+    recurse(0, 0, 0, [], [-1])
+    if box:
+        for sx, sy, width, height, _ in best_clears:
+            box(sx, sy, width, height)
     return best_score
 
 
 def test():
-    grid = [[randint(1, 9) for _ in range(NUM_COLS)] for _ in range(NUM_ROWS)]
+    grid = [[random.randint(1, 9) for _ in range(NUM_COLS)] for _ in range(NUM_ROWS)]
     for row in grid:
         print(row)
     print('solve1:', solve1(grid))
     print('solve2:', solve2(grid))
 
 
-test()
+# test()
