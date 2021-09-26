@@ -55,7 +55,8 @@ public class FruitBoxSolver {
         } else if (px == NUM_COLS)
             recurse(grid, 0, py + 1, score, clears, cdf, 1000);
         else {
-            if (best_cdf.size() > cdf.size() + D && best_cdf.get(cdf.size() + D) <= last(cdf))
+            if (best_cdf.size() > cdf.size() + D
+                    && best_cdf.get(cdf.size() + D) <= cdf.get(cdf.size() - 1))
                 return;
             Set<Clear> used_clears = new HashSet<>();
             for (int back_index = min_back_index; back_index < clears.size(); back_index++)
@@ -80,17 +81,17 @@ public class FruitBoxSolver {
         int cdf_val = clear.points.get(0).y * NUM_COLS + clear.points.get(0).x;
         for (Point p : clear.points) {
             grid[p.y][p.x] = 0;
-            cdf.add(Math.max(last(cdf), cdf_val));
+            cdf.add(Math.max(cdf.get(cdf.size() - 1), cdf_val));
         }
         long grid_hash = compute_grid_hash(grid);
         if (!visited_hashes.contains(grid_hash)) {
             visited_hashes.add(grid_hash);
             recurse(grid, px, py, score + clear.points.size(), clears, cdf, new_min_back_index);
         }
-        removeLast(clears);
+        clears.remove(clears.size() - 1);
         for (Point p : clear.points) {
             grid[p.y][p.x] = p.val;
-            removeLast(cdf);
+            cdf.remove(cdf.size() - 1);
         }
     }
 
@@ -152,7 +153,7 @@ public class FruitBoxSolver {
                 int rect_sum = 0;
                 boolean leftmost_col_used = false;
                 boolean rightmost_col_used = false;
-                while(sy + height < NUM_ROWS) {
+                while (sy + height < NUM_ROWS) {
                     for (int x = sx; x < sx + width; x++)
                         rect_sum += grid[sy + height][x];
                     leftmost_col_used |= grid[sy + height][sx] > 0;
@@ -186,40 +187,16 @@ public class FruitBoxSolver {
         return grid_hash;
     }
 
-    <T> T last(List<T> list) {
-        return list.get(list.size() - 1);
-    }
-
-    <T> T removeLast(List<T> list) {
-        return list.remove(list.size() - 1);
-    }
-
     static class Clear {
         final int sx, sy, width, height;
         final List<Point> points;
 
-        public Clear(int sx, int sy, int width, int height, List<Point> points) {
+        Clear(int sx, int sy, int width, int height, List<Point> points) {
             this.sx = sx;
             this.sy = sy;
             this.width = width;
             this.height = height;
             this.points = points;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o)
-                return true;
-            if (o == null || getClass() != o.getClass())
-                return false;
-            Clear clear = (Clear) o;
-            return sx == clear.sx && sy == clear.sy && width == clear.width
-                && height == clear.height && Objects.equals(points, clear.points);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(sx, sy, width, height, points);
         }
     }
 
@@ -230,21 +207,6 @@ public class FruitBoxSolver {
             this.x = x;
             this.y = y;
             this.val = val;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o)
-                return true;
-            if (o == null || getClass() != o.getClass())
-                return false;
-            Point point = (Point) o;
-            return x == point.x && y == point.y && val == point.val;
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(x, y, val);
         }
     }
 }
