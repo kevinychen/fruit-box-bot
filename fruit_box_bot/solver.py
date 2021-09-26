@@ -1,5 +1,7 @@
 from collections import namedtuple
+import os
 import random
+import subprocess
 
 NUM_ROWS = 10
 NUM_COLS = 17
@@ -160,6 +162,25 @@ def solve2(grid, box=None):
     return best_score
 
 
+def solve3(grid):
+    os.chdir('../java')
+    with open('input.dat', 'w') as fh:
+        for row in grid:
+            fh.write(' '.join(map(str, row)) + '\n')
+    p = subprocess.Popen(['java', 'FruitBoxSolver'])
+    p.communicate()
+    clears = []
+    with open('output.dat') as fh:
+        for line in fh.readlines():
+            x, y, width, height = map(int, line.split(' '))
+            clears.append(Clear(x, y, width, height, []))
+            for dx in range(width):
+                for dy in range(height):
+                    grid[y + dy][x + dx] = 0
+    os.chdir('../fruit_box_bot')
+    return sum([grid[y][x] == 0 for x in range(NUM_COLS) for y in range(NUM_ROWS)]), clears
+
+
 def test():
     grid = [[random.randint(1, 9) for _ in range(NUM_COLS)] for _ in range(NUM_ROWS)]
     for row in grid:
@@ -168,4 +189,17 @@ def test():
     print('solve2:', solve2(grid))
 
 
+# Grid from demo video
+# grid = [
+#     [6, 7, 5, 3, 7, 5, 7, 2, 6, 5, 6, 3, 1, 5, 6, 6, 9],
+#     [3, 3, 1, 8, 4, 9, 4, 6, 6, 5, 2, 8, 2, 3, 2, 1, 5],
+#     [5, 8, 5, 3, 9, 7, 9, 1, 1, 5, 6, 2, 1, 6, 3, 6, 2],
+#     [5, 2, 7, 3, 7, 1, 2, 8, 7, 3, 5, 9, 6, 5, 1, 3, 1],
+#     [5, 5, 2, 5, 7, 2, 5, 9, 1, 2, 6, 7, 7, 9, 6, 9, 4],
+#     [4, 8, 7, 4, 1, 4, 2, 1, 1, 3, 7, 5, 7, 6, 7, 3, 1],
+#     [5, 3, 2, 2, 7, 6, 7, 4, 3, 7, 4, 6, 1, 1, 6, 1, 1],
+#     [4, 6, 7, 1, 3, 8, 6, 4, 6, 1, 2, 7, 1, 8, 5, 8, 7],
+#     [2, 1, 3, 4, 1, 4, 4, 3, 1, 4, 6, 6, 2, 6, 5, 7, 7],
+#     [7, 2, 4, 1, 3, 1, 1, 1, 6, 1, 5, 1, 5, 3, 7, 3, 6],
+# ]
 # test()
