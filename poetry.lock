@@ -1,4 +1,19 @@
 [[package]]
+name = "maturin"
+version = "0.14.15"
+description = "Build and publish crates with pyo3, rust-cpython and cffi bindings as well as rust binaries as python packages"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+
+[package.dependencies]
+tomli = {version = ">=1.1.0", markers = "python_version < \"3.11\""}
+
+[package.extras]
+zig = ["ziglang (>=0.10.0,<0.11.0)"]
+patchelf = ["patchelf"]
+
+[[package]]
 name = "mouseinfo"
 version = "0.1.3"
 description = "An application to display XY position and RGB color information for the pixel currently under the mouse. Works on Python 2 and 3."
@@ -1898,12 +1913,21 @@ category = "main"
 optional = false
 python-versions = ">=3.5"
 
+[[package]]
+name = "tomli"
+version = "2.0.1"
+description = "A lil' TOML parser"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "84ea8459f484bf9a45dde5f543ef0993135f64aea296690803d89c46c704eb09"
+content-hash = "95601c11b060f4445b0b0ae39d19cfc09791f2587457f065cbf85d10b0d2e8c7"
 
 [metadata.files]
+maturin = []
 mouseinfo = [
     {file = "MouseInfo-0.1.3.tar.gz", hash = "sha256:2c62fb8885062b8e520a3cce0a297c657adcc08c60952eb05bc8256ef6f7f6e7"},
 ]
@@ -2672,3 +2696,4 @@ rubicon-objc = [
     {file = "rubicon-objc-0.4.1.tar.gz", hash = "sha256:e6de491187445704e03a653840904b5252c9345ec1d0ab94922a1e7711623bc3"},
     {file = "rubicon_objc-0.4.1-py3-none-any.whl", hash = "sha256:8b4482792c189b0642da7649d81267e2c405ac1b2aa4c8e254a7f96a63f4805e"},
 ]
+tomli = []

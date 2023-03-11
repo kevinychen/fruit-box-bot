@@ -1,0 +1,13 @@
+[package]
+name = "fruit-box-bot"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "fruit_box_bot"
+
+[dependencies]
+pyo3 = "0.18.1"
+
+[tool.maturin]
+features = ["extension-module"]
