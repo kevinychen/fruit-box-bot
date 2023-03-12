@@ -5,6 +5,7 @@ use pyo3::{prelude::*};
 
 const HEIGHT: usize = 10;
 const WIDTH: usize = 17;
+const MAX_NUM_MOVES: usize = HEIGHT * WIDTH / 2 + 1;
 const D: usize = 4;
 
 type Grid = [[u32; WIDTH]; HEIGHT];
@@ -41,11 +42,25 @@ fn hash(grid: Grid) -> u64 {
     hash.0
 }
 
-fn recurse(grid: Grid, visited: &mut HashSet<u64>, current_strategy: &mut Strategy, best_strategy: &mut Strategy) {
+fn recurse(
+    grid: Grid,
+    visited: &mut HashSet<u64>,
+    current_strategy: &mut Strategy,
+    num_moves: usize,
+    best_intermediate_scores: &mut [u32; MAX_NUM_MOVES],
+    best_strategy: &mut Strategy,
+) {
     if current_strategy.score > best_strategy.score {
         best_strategy.boxes.clear();
         best_strategy.boxes.extend(&current_strategy.boxes);
         best_strategy.score = current_strategy.score;
+    }
+
+    if current_strategy.score < best_intermediate_scores[num_moves] {
+        best_intermediate_scores[num_moves] = current_strategy.score;
+    }
+    if current_strategy.score > best_intermediate_scores[num_moves] + 5 {
+        return;
     }
 
     let hash = hash(grid);
@@ -109,7 +124,7 @@ fn recurse(grid: Grid, visited: &mut HashSet<u64>, current_strategy: &mut Strate
             }
             current_strategy.boxes.push(b);
             current_strategy.score += count;
-            recurse(new_grid, visited, current_strategy, best_strategy);
+            recurse(new_grid, visited, current_strategy, num_moves + 1, best_intermediate_scores, best_strategy);
             current_strategy.boxes.pop();
             current_strategy.score -= count;
         }
@@ -119,7 +134,7 @@ fn recurse(grid: Grid, visited: &mut HashSet<u64>, current_strategy: &mut Strate
 #[pyfunction]
 fn find_strategy(grid: Grid) -> PyResult<Strategy> {
     let mut best_strategy = Strategy{boxes: vec![], score: 0};
-    recurse(grid, &mut HashSet::new(), &mut Strategy{boxes: vec![], score: 0}, &mut best_strategy);
+    recurse(grid, &mut HashSet::new(), &mut Strategy{boxes: vec![], score: 0}, 0, &mut [u32::MAX; MAX_NUM_MOVES], &mut best_strategy);
     Ok(best_strategy)
 }
 

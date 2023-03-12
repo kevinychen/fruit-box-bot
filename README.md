@@ -11,7 +11,7 @@ summing to exactly 10.
 Demo Video
 ----------
 
-Here is a full video with a score of 167!
+Here is a video with a perfect score of 170!
 
 ![Full](docs/full.gif)
 
