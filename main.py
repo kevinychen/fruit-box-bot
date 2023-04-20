@@ -29,15 +29,15 @@ while True:
             total += digit
 
     # Optimization: grids with lower sums generally give higher scores
-    if total > 800:
-        continue
+#    if total > 800:
+#        continue
 
     strategy = fruit_box_bot.find_strategy(grid)
     print(f'Sum of apples: {total}; Found strategy with score {strategy.score}')
 
-    # If we're aiming for a particular score, exit early if we didn't get it
-    if strategy.score < NUM_ROWS * NUM_COLS:
-        continue
+    # Optimization: if we're aiming for a particular score, exit early if we didn't get it
+#    if strategy.score < NUM_ROWS * NUM_COLS:
+#        continue
 
     # Play the game
     for box in strategy.boxes:
